@@ -4,6 +4,7 @@ import pickle
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl  # <-- PERBAIKAN 2: Import ini wajib ada
 import numpy as np
+import requests
 
 import os
 from dotenv import load_dotenv
@@ -88,7 +89,17 @@ async def generate_ai_response(req: ChatRequest):
         Balas chat pemain ini dengan gaya bahasa gamer Indonesia!
         """
 
-        final_reply = f"(Panik: {threat_level:.2f}%) Wah, bukan gw sumpah! Gw dari tadi cuma farming koin di pojokan!" 
+        # --- 4. Tembak ke Ollama Container ---
+        ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
+        payload = {
+            "model": "deepseek-r1:14b",
+            "prompt": prompt,
+            "stream": False
+        }
+        
+        response = requests.post(ollama_url, json=payload)
+        response_data = response.json()
+        final_reply = response_data.get("response", "Sinyal radio terganggu...")
 
         return {
             "success": True,

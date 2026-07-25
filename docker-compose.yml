@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # 1. SERVER OLLAMA (LLM LOKAL)
   ollama:
     image: ollama/ollama:latest
     container_name: ollama_server
@@ -25,19 +24,17 @@ services:
     networks:
       - shadow-net
 
-  # 2. SERVER PYTHON (NLU + FUZZY + FASTAPI)
   ai-engine:
     build:
-      context: ./ai-engine # Pastikan nama foldernya sesuai
+      context: ./python 
       dockerfile: Dockerfile
     container_name: shadow_ai_engine
     ports:
       - "8000:8000"
     environment:
-      # Variabel URL agar Python tahu cara nge-hit Ollama di container sebelahnya
       - OLLAMA_URL=http://ollama_server:11434/api/generate 
     depends_on:
-      - ollama # Pastikan Ollama jalan duluan sebelum Python
+      - ollama 
     networks:
       - shadow-net
 

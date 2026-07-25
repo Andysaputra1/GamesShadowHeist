@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import pickle
 import skfuzzy as fuzz
-from skfuzzy import control as ctrl  # <-- PERBAIKAN 2: Import ini wajib ada
+from skfuzzy import control as ctrl 
 import numpy as np
 import requests
 
@@ -66,11 +66,11 @@ except Exception as e:
     print("Warning: Model NLU gagal diload! Pastikan path folder benar.", e)
 
 class ChatRequest(BaseModel):
-    player_message: str  # <-- PERBAIKAN 1: string diganti str
+    player_message: str  
     kekayaan_saat_ini: int
     jumlah_tuduhan: int
     total_polisi: int
-    role: str            # <-- PERBAIKAN 1: string diganti str
+    role: str           
 
 @app.post("/api/ai-chat")
 async def generate_ai_response(req: ChatRequest):
@@ -89,14 +89,13 @@ async def generate_ai_response(req: ChatRequest):
         Balas chat pemain ini dengan gaya bahasa gamer Indonesia!
         """
 
-        # --- 4. Tembak ke Ollama Container ---
         ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
         payload = {
             "model": "deepseek-r1:14b",
             "prompt": prompt,
             "stream": False
         }
-        
+                
         response = requests.post(ollama_url, json=payload)
         response_data = response.json()
         final_reply = response_data.get("response", "Sinyal radio terganggu...")

@@ -1,0 +1,235 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Container Utama */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #111;
+  background-image: 
+    linear-gradient(45deg, #0a0a0a 25%, transparent 25%, transparent 75%, #0a0a0a 75%, #0a0a0a), 
+    linear-gradient(45deg, #0a0a0a 25%, transparent 25%, transparent 75%, #0a0a0a 75%, #0a0a0a);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  font-family: 'Press Start 2P', cursive;
+  color: #fff;
+}
+
+/* Base Pixel Box */
+.pixel-box {
+  background-color: #2b2b2b;
+  box-shadow: 
+    -4px 0 0 0 white, 4px 0 0 0 white, 
+    0 -4px 0 0 white, 0 4px 0 0 white;
+}
+
+/* Header */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  margin: 10px;
+}
+
+.room-info {
+  font-size: 14px;
+  color: #ffcc00;
+}
+
+.exit-btn {
+  background-color: #d32f2f;
+  color: white;
+  padding: 10px;
+  font-size: 10px;
+}
+
+/* Arena Tengah (Karakter) */
+.arena {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 100px; /* Jarak antar karakter */
+  padding: 20px;
+}
+
+.character-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Desain Karakter / Avatar */
+.sprite {
+  font-size: 60px;
+  margin-bottom: 10px;
+  padding: 20px;
+  background-color: #000;
+  box-shadow: 
+    -4px 0 0 0 #444, 4px 0 0 0 #444, 
+    0 -4px 0 0 #444, 0 4px 0 0 #444;
+}
+
+.name-tag {
+  font-size: 12px;
+  color: #fff;
+  background-color: #111;
+  padding: 5px 10px;
+  border: 2px solid #555;
+}
+
+.ai-tag {
+  color: #ff3366;
+  border-color: #ff3366;
+}
+
+/* Logika Chat Bubble (Melayang di atas karakter) */
+.chat-bubble {
+  position: absolute;
+  top: -80px; /* Posisi di atas kepala */
+  width: max-content;
+  max-width: 200px;
+  background-color: #fff;
+  color: #000;
+  padding: 15px;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: 
+    -4px 0 0 0 #fff, 4px 0 0 0 #fff, 
+    0 -4px 0 0 #fff, 0 4px 0 0 #fff;
+  animation: popIn 0.2s ease-out forwards;
+}
+
+/* Ekor Bubble */
+.chat-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background-color: #fff;
+}
+
+/* Animasi Muncul */
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Footer (Chat Input) */
+.chat-bar {
+  display: flex;
+  margin: 10px;
+  padding: 10px;
+  gap: 10px;
+}
+
+.chat-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #000;
+  padding: 0 15px;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+}
+
+.prompt-icon {
+  color: #00ffcc;
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+.chat-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  padding: 15px 0;
+}
+
+.send-btn {
+  background-color: #1976d2;
+  color: #fff;
+  padding: 15px 20px;
+  font-size: 12px;
+}
+
+/* Global Button Style */
+.pixel-btn {
+  font-family: 'Press Start 2P', cursive;
+  border: none;
+  cursor: pointer;
+  box-shadow: 
+    inset -4px -4px 0px 0px rgba(0, 0, 0, 0.4),
+    -4px 0 0 0 #fff, 4px 0 0 0 #fff, 
+    0 -4px 0 0 #fff, 0 4px 0 0 #fff;
+}
+
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 
+    inset 4px 4px 0px 0px rgba(0, 0, 0, 0.4),
+    -4px 0 0 0 #fff, 4px 0 0 0 #fff, 
+    0 -4px 0 0 #fff, 0 4px 0 0 #fff;
+}
+</style>
+
+<body>
+    <div class="game-container">
+    <header class="top-bar pixel-box">
+    <div class="room-info">ROOM: SHADOW_HEIST_01</div>
+    <button routerLink="/main" class="pixel-btn exit-btn">EXIT</button>
+  </header>
+
+  <main class="arena">
+    
+    <div class="character-wrapper">
+      @if (playerMessage) {
+        <div class="chat-bubble player-bubble">
+          {{ playerMessage }}
+        </div>
+      }
+      <div class="sprite player-sprite">👾</div>
+      <div class="name-tag">PLAYER_1</div>
+    </div>
+
+    <div class="character-wrapper">
+      @if (npcMessage) {
+        <div class="chat-bubble npc-bubble">
+          {{ npcMessage }}
+        </div>
+      }
+      <div class="sprite npc-sprite">🤖</div>
+      <div class="name-tag ai-tag">AI_BOT</div>
+    </div>
+
+  </main>
+
+  <footer class="chat-bar pixel-box">
+    <div class="chat-input-wrapper">
+      <span class="prompt-icon">></span>
+      <input 
+        #chatInput 
+        type="text" 
+        class="chat-input" 
+        placeholder="Ketik kebohonganmu di sini..." 
+        (keydown.enter)="sendMessage(chatInput.value); chatInput.value=''" 
+      />
+    </div>
+    <button 
+      class="pixel-btn send-btn" 
+      (click)="sendMessage(chatInput.value); chatInput.value=''">
+      SEND
+    </button>
+  </footer>
+</div>
+</body>

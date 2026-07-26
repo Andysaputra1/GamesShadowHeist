@@ -1,0 +1,50 @@
+# ==========================================
+# 1. NODE.JS & FRONTEND / BACKEND (Angular & Express)
+# ==========================================
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+.angular/
+.sass-cache/
+coverage/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.log
+
+# ==========================================
+# 2. PYTHON & AI ENGINE
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.ipynb_checkpoints/
+*.pkl
+!.gitkeep
+
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# 3. IDEs, EDITORS & SYSTEM
+# ==========================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.sublime-workspace
+
+.DS_Store
+Thumbs.db

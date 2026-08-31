@@ -3,5 +3,12 @@ uvicorn
 pydantic
 scikit-fuzzy
 numpy
+networkx
 scikit-learn
 python-dotenv
+thefuzz
+openai
+httpx
+flask 
+flask-socketio 
+joblib 

@@ -1,111 +1,151 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import pickle
-import skfuzzy as fuzz
-from skfuzzy import control as ctrl 
+import joblib
 import numpy as np
-import requests
-
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+import httpx
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+app = FastAPI(title="Shadow AI Engine")
 
-def calculate_npc_threat(role, kekayaan_saat_ini, jumlah_tuduhan, total_polisi):
-    kekayaan = ctrl.Antecedent(np.arange(0, 10001, 1), 'kekayaan')
-    tekanan_sosial = ctrl.Antecedent(np.arange(0, 11, 1), 'tekanan_sosial')
-    ancaman = ctrl.Consequent(np.arange(0, 101, 1), 'ancaman')
+# 1. State Management (Penyimpanan Chat Sementara)
+# Untuk produksi, sebaiknya gunakan database (Redis/PostgreSQL). Ini menggunakan memory runtime.
+game_chat_history = []
 
-    kekayaan['miskin'] = fuzz.trimf(kekayaan.universe, [0, 0, 4000])
-    kekayaan['menengah'] = fuzz.trimf(kekayaan.universe, [2000, 5000, 8000])
-    kekayaan['kaya'] = fuzz.trimf(kekayaan.universe, [6000, 10000, 10000])
+# 2. Setup Global Model
+svm_model = None
+suspicion_sim = None
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama_server:11434/api/generate")
 
-    tekanan_sosial['aman'] = fuzz.trimf(tekanan_sosial.universe, [0, 0, 3])
-    tekanan_sosial['waspada'] = fuzz.trimf(tekanan_sosial.universe, [2, 5, 8])
-    tekanan_sosial['bahaya'] = fuzz.trimf(tekanan_sosial.universe, [6, 10, 10])
+# Mapping nilai agresivitas berdasarkan label intent dari SVM
+INTENT_SCORE_MAP = {
+    "accusing": 90,
+    "persuading": 80,
+    "bluffing": 75,
+    "deflecting": 60,
+    "probing": 50,
+    "claiming": 40,
+    "defending": 30,
+    "neutral": 10
+}
 
-    ancaman['rendah'] = fuzz.trimf(ancaman.universe, [0, 0, 40])
-    ancaman['sedang'] = fuzz.trimf(ancaman.universe, [30, 50, 70])
-    ancaman['tinggi'] = fuzz.trimf(ancaman.universe, [60, 100, 100])
+def init_fuzzy_logic():
+    agresivitas = ctrl.Antecedent(np.arange(0, 101, 1), 'agresivitas_chat')
+    durasi_diam = ctrl.Antecedent(np.arange(0, 101, 1), 'durasi_diam')
+    curiga = ctrl.Consequent(np.arange(0, 101, 1), 'tingkat_curiga')
 
-    rules = [
-        ctrl.Rule(tekanan_sosial['bahaya'], ancaman['tinggi']),
-        ctrl.Rule(kekayaan['kaya'] & tekanan_sosial['aman'], ancaman['sedang']),
-        ctrl.Rule(kekayaan['kaya'] & tekanan_sosial['waspada'], ancaman['tinggi']),
-        ctrl.Rule(kekayaan['menengah'] & tekanan_sosial['aman'], ancaman['rendah']),
-        ctrl.Rule(kekayaan['menengah'] & tekanan_sosial['waspada'], ancaman['sedang']),
-        ctrl.Rule(kekayaan['miskin'] & tekanan_sosial['aman'], ancaman['rendah']),
-        ctrl.Rule(kekayaan['miskin'] & tekanan_sosial['waspada'], ancaman['rendah']),
-        ctrl.Rule(tekanan_sosial['waspada'], ancaman['sedang']),
-    ]
+    agresivitas['pasif'] = fuzz.trimf(agresivitas.universe, [0, 0, 40])
+    agresivitas['netral'] = fuzz.trimf(agresivitas.universe, [30, 50, 70])
+    agresivitas['agresif'] = fuzz.trimf(agresivitas.universe, [60, 100, 100])
+
+    durasi_diam['bawel'] = fuzz.trimf(durasi_diam.universe, [0, 0, 30])
+    durasi_diam['normal'] = fuzz.trimf(durasi_diam.universe, [20, 50, 80])
+    durasi_diam['bungkam'] = fuzz.trimf(durasi_diam.universe, [70, 100, 100])
+
+    curiga['aman'] = fuzz.trimf(curiga.universe, [0, 0, 40])
+    curiga['sus'] = fuzz.trimf(curiga.universe, [30, 50, 70])
+    curiga['bahaya'] = fuzz.trimf(curiga.universe, [60, 100, 100])
+
+    rule1 = ctrl.Rule(agresivitas['agresif'] & durasi_diam['bawel'], curiga['sus'])
+    rule2 = ctrl.Rule(agresivitas['pasif'] & durasi_diam['bungkam'], curiga['bahaya'])
+    rule3 = ctrl.Rule(agresivitas['netral'] & durasi_diam['normal'], curiga['aman'])
+    rule4 = ctrl.Rule(agresivitas['agresif'] & durasi_diam['bungkam'], curiga['bahaya'])
+    rule5 = ctrl.Rule(agresivitas['netral'] & durasi_diam['bawel'], curiga['aman'])
     
-    tipe_ancaman_ctrl = ctrl.ControlSystem(rules)
-    simulasi = ctrl.ControlSystemSimulation(tipe_ancaman_ctrl)
+    suspicion_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
+    return ctrl.ControlSystemSimulation(suspicion_ctrl)
 
-    simulasi.input['kekayaan'] = kekayaan_saat_ini
+@app.on_event("startup")
+def load_models():
+    global svm_model, suspicion_sim
+    try:
+        svm_model = joblib.load("models/intent_classifier.pkl")
+        print("Model SVM berhasil dimuat.")
+    except Exception as e:
+        print(f"Gagal memuat model SVM: {e}")
     
-    multiplier = 1.2 if total_polisi >= 2 else 1.0
-    simulasi.input['tekanan_sosial'] = min(jumlah_tuduhan * multiplier, 10)
-
-    simulasi.compute()
-    base_threat = simulasi.output['ancaman']
-
-    if role in ['gangster', 'ketua_gangster']:
-        final_threat = min(base_threat + 10, 100) 
-    else:
-        final_threat = base_threat 
-
-    return final_threat
-
-app = FastAPI(title="Shadow Heist AI Engine")
-
-try:
-    with open("models/intent_classifier.pkl", "rb") as f:
-        nlu_model = pickle.load(f)
-except Exception as e:
-    print("Warning: Model NLU gagal diload! Pastikan path folder benar.", e)
+    suspicion_sim = init_fuzzy_logic()
+    print("Sistem Fuzzy Logic berhasil diinisialisasi.")
 
 class ChatRequest(BaseModel):
-    player_message: str  
-    kekayaan_saat_ini: int
-    jumlah_tuduhan: int
-    total_polisi: int
-    role: str           
+    player_name: str
+    message: str
+    silence_percentage: int  # Persentase durasi diam pemain (0-100) yang dikirim dari frontend
 
-@app.post("/api/ai-chat")
-async def generate_ai_response(req: ChatRequest):
+@app.post("/api/analyze")
+async def analyze_chat(req: ChatRequest):
+    if not svm_model or not suspicion_sim:
+        raise HTTPException(status_code=500, detail="Model belum siap.")
+
+    # 1. Simpan ke histori
+    game_chat_history.append(f"{req.player_name}: {req.message}")
+
+    # 2. Klasifikasi Intent dengan SVM
+    predicted_intent = svm_model.predict([req.message])[0]
+    
+    # 3. Hitung Agresivitas & Masukkan ke Fuzzy Logic
+    aggressiveness_score = INTENT_SCORE_MAP.get(predicted_intent, 10)
+    
+    suspicion_sim.input['agresivitas_chat'] = aggressiveness_score
+    suspicion_sim.input['durasi_diam'] = req.silence_percentage
+    suspicion_sim.compute()
+    
+    sus_score = suspicion_sim.output['tingkat_curiga']
+    
+    if sus_score >= 60:
+        sus_status = "BAHAYA"
+    elif sus_score >= 40:
+        sus_status = "SUS"
+    else:
+        sus_status = "AMAN"
+
+    # 4. Susun Prompt untuk LLM (Deepseek)
+    history_text = "\n".join(game_chat_history[-10:]) # Ambil 10 chat terakhir agar konteks tidak terlalu panjang
+    
+    prompt = f"""
+Kamu adalah AI Host dalam game deduksi sosial (seperti Mafia/Town of Salem).
+Berikut adalah percakapan terakhir para pemain:
+{history_text}
+
+Analisis sistem terhadap pemain '{req.player_name}':
+- Pesan terakhir: "{req.message}"
+- Intent pesan (SVM): {predicted_intent}
+- Tingkat Kecurigaan (Fuzzy Logic): {sus_score:.2f} ({sus_status})
+
+Berikan respons singkat (maksimal 2 kalimat) sebagai AI Host yang mengomentari tingkah laku '{req.player_name}' berdasarkan status '{sus_status}' dan intent '{predicted_intent}'. Jangan sebutkan angka skor secara mentah, gunakan gaya bahasa misterius.
+"""
+
+    # 5. Panggil Ollama secara asinkron
+    llm_reply = "AI Host sedang offline."
     try:
-        intent = nlu_model.predict([req.player_message])[0]
-        intent = "defending"
-        
-        threat_level = calculate_npc_threat(req.role, req.kekayaan_saat_ini, req.jumlah_tuduhan, req.total_polisi)
-        threat_level = 75.5
-
-        prompt = f"""
-        Kamu adalah NPC di game Shadow Heist. 
-        Pemain berkata: "{req.player_message}"
-        Niat pemain terdeteksi sebagai: {intent}.
-        Tingkat kepanikanmu saat ini: {threat_level:.2f}%.
-        Balas chat pemain ini dengan gaya bahasa gamer Indonesia!
-        """
-
-        ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
-        payload = {
-            "model": "deepseek-r1:14b",
-            "prompt": prompt,
-            "stream": False
-        }
-                
-        response = requests.post(ollama_url, json=payload)
-        response_data = response.json()
-        final_reply = response_data.get("response", "Sinyal radio terganggu...")
-
-        return {
-            "success": True,
-            "intent_detected": intent,
-            "threat_level": round(threat_level, 2),
-            "reply": final_reply
-        }
-
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                OLLAMA_URL,
+                json={
+                    "model": "deepseek-r1:1.5b",
+                    "prompt": prompt,
+                    "stream": False
+                },
+                timeout=30.0
+            )
+            if response.status_code == 200:
+                llm_reply = response.json().get("response", "").strip()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error memanggil Ollama: {e}")
+
+    return {
+        "intent": predicted_intent,
+        "fuzzy": {
+            "aggressiveness": aggressiveness_score,
+            "suspicion_score": round(sus_score, 2),
+            "status": sus_status
+        },
+        "llm_response": llm_reply
+    }
+
+@app.delete("/api/reset")
+def reset_history():
+    global game_chat_history
+    game_chat_history = []
+    return {"message": "Histori chat game berhasil di-reset."}

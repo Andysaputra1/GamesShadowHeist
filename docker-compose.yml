@@ -1,40 +1,40 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama_server
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    entrypoint:
-      [
-        "/bin/sh",
-        "-c",
-        "ollama serve & sleep 10 && ollama pull deepseek-r1:1.5b && wait",
-      ]
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    networks:
-      - shadow-net
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama_server
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   entrypoint:
+  #     [
+  #       "/bin/sh",
+  #       "-c",
+  #       "ollama serve & sleep 10 && ollama pull deepseek-r1:1.5b && wait",
+  #     ]
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+  #   networks:
+  #     - shadow-net
 
-  ai-engine:
-    build:
-      context: ./python 
-      dockerfile: Dockerfile
-    container_name: shadow_ai_engine
-    ports:
-      - "8000:8000"
-    environment:
-      - OLLAMA_URL=http://ollama_server:11434/api/generate 
-    depends_on:
-      - ollama 
-    networks:
-      - shadow-net
+  # ai-engine:
+  #   build:
+  #     context: ./python 
+  #     dockerfile: Dockerfile
+  #   container_name: shadow_ai_engine
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - OLLAMA_URL=http://ollama_server:11434/api/generate 
+  #   depends_on:
+  #     - ollama 
+  #   networks:
+  #     - shadow-net
 
   frontend:
     build:
@@ -48,9 +48,9 @@ services:
     networks:
       - shadow-net
 
-networks:
-  shadow-net:
-    driver: bridge
+# networks:
+#   shadow-net:
+#     driver: bridge
 
-volumes:
-  ollama_data:
+# volumes:
+#   ollama_data:

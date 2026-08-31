@@ -1,235 +1,468 @@
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  :host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
 
-/* Container Utama */
-.game-container {
+/* --- BACKGROUND KAYU UTAMA --- */
+.game-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #211510;
+  background-image: repeating-linear-gradient(to right, #211510 0px, #1a100c 20px, #211510 40px);
+  color: #f4efe4;
+}
+
+/* =========================================
+   1. INTRO ANIMATION & OVERLAY
+   ========================================= */
+.intro-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: #211510;
+  background-image: repeating-linear-gradient(to right, #211510 0px, #1a100c 20px, #211510 40px);
+  z-index: 100;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background-color: #111;
-  background-image: 
-    linear-gradient(45deg, #0a0a0a 25%, transparent 25%, transparent 75%, #0a0a0a 75%, #0a0a0a), 
-    linear-gradient(45deg, #0a0a0a 25%, transparent 25%, transparent 75%, #0a0a0a 75%, #0a0a0a);
-  background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
-  font-family: 'Press Start 2P', cursive;
-  color: #fff;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.9);
+  
+  /* Hilang sepenuhnya setelah 6 detik */
+  animation: fadeOutIntro 0.5s ease-in 6s forwards;
 }
 
-/* Base Pixel Box */
-.pixel-box {
-  background-color: #2b2b2b;
-  box-shadow: 
-    -4px 0 0 0 white, 4px 0 0 0 white, 
-    0 -4px 0 0 white, 0 4px 0 0 white;
+.intro-title {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 3rem;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
 }
 
-/* Header */
-.top-bar {
+/* Fase 1: Shuffling */
+.shuffling-phase {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Hilang setelah 3 detik */
+  animation: fadeOutStep 0.5s ease-in 3s forwards;
+}
+
+.cards-deck {
+  position: relative;
+  width: 150px;
+  height: 200px;
+}
+
+.card-back {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #e5dfd1;
+  border: 8px solid #0a0a0a;
+  border-radius: 8px;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+  transform-origin: bottom center;
+  animation: shuffleAnim 0.6s infinite alternate ease-in-out;
+}
+
+.card-1 { transform: rotate(-20deg) translateX(-40px); animation-delay: 0.1s; }
+.card-2 { transform: rotate(-10deg) translateX(-20px); animation-delay: 0.2s; }
+.card-3 { transform: rotate(0deg); animation-delay: 0.3s; background: #8b0000; }
+.card-4 { transform: rotate(10deg) translateX(20px); animation-delay: 0.4s; }
+.card-5 { transform: rotate(20deg) translateX(40px); animation-delay: 0.5s; }
+
+/* Fase 2: Reveal */
+.reveal-phase {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  /* Muncul di detik 3.5 */
+  animation: fadeInStep 0.5s ease-out 3.5s forwards;
+}
+
+.mini-card {
+  background-color: #f4efe4;
+  border: 10px solid #0a0a0a;
+  border-radius: 8px;
+  width: 220px;
+  height: 320px;
+  padding: 5px;
+  color: #0a0a0a;
+}
+.mini-card .card-inner-border {
+  border: 2px solid #0a0a0a;
+  height: 100%;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 10px;
+}
+.mini-card .card-role-title { font-size: 2rem; margin: 0; font-family: 'Arial Narrow', sans-serif;}
+
+/* Keyframes untuk urutan intro */
+@keyframes shuffleAnim {
+  0% { margin-top: 0; }
+  100% { margin-top: -20px; }
+}
+@keyframes fadeOutStep {
+  to { opacity: 0; visibility: hidden; }
+}
+@keyframes fadeInStep {
+  to { opacity: 1; visibility: visible; }
+}
+@keyframes fadeOutIntro {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+
+/* =========================================
+   2. MAIN GAME UI LAYOUT
+   ========================================= */
+.main-game-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- BAGIAN KIRI (70%) --- */
+.left-section {
+  flex: 7;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-right: 6px solid #0a0a0a; /* Pemisah tegas antara map dan chat */
+  box-shadow: inset -10px 0 20px rgba(0,0,0,0.5);
+}
+
+/* HUD Atas */
+.top-hud {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  margin: 10px;
+  background: #1c110d;
+  border: 4px solid #0a0a0a;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 15px rgba(0,0,0,0.5);
 }
 
-.room-info {
-  font-size: 14px;
-  color: #ffcc00;
-}
-
-.exit-btn {
-  background-color: #d32f2f;
-  color: white;
-  padding: 10px;
-  font-size: 10px;
-}
-
-/* Arena Tengah (Karakter) */
-.arena {
-  flex: 1;
+.right-hud-group {
   display: flex;
-  justify-content: center;
+  gap: 15px;
   align-items: center;
-  gap: 100px; /* Jarak antar karakter */
-  padding: 20px;
 }
 
-.character-wrapper {
+.hud-circle-btn, .phase-indicator {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e5dfd1;
+  border: 3px solid #0a0a0a;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 1.5rem;
+  color: #0a0a0a;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hud-circle-btn:hover { background: #cfc7b4; }
+.phase-indicator.sun { background: #ffd700; cursor: default; }
+
+.timer-box {
+  background: #5a7a5a; /* Warna hijau redam mirip wireframe */
+  border: 3px solid #0a0a0a;
+  padding: 5px 40px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.timer-text { display: block; font-size: 2.5rem; font-weight: 900; letter-spacing: 3px; color: #f4efe4; }
+.phase-text { display: block; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px; color: #0a0a0a; }
+
+/* Game Map */
+.game-map {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 4px solid #8b0000; /* Garis merah penanda arena tegang */
+  border-radius: 8px;
   position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Ilustrasi Meja Bundar & Pemain */
+.map-center-table {
+  width: 300px; height: 200px;
+  background: #1a100c; border: 4px solid #0a0a0a; border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.avatar-slot { position: absolute; display: flex; flex-direction: column; align-items: center; }
+.avatar-slot .avatar-circle { width: 50px; height: 50px; border-radius: 50%; background: #e5dfd1; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 5px;}
+.avatar-slot .name-tag { background: #0a0a0a; padding: 2px 6px; font-size: 0.75rem; border-radius: 4px;}
+
+.pos-top { top: -60px; left: 50%; transform: translateX(-50%); }
+.pos-bottom { bottom: -60px; left: 50%; transform: translateX(-50%); }
+.pos-left { left: -60px; top: 50%; transform: translateY(-50%); }
+.pos-right { right: -60px; top: 50%; transform: translateY(-50%); }
+
+
+/* --- BAGIAN KANAN (30%) --- */
+.right-section {
+  flex: 3;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  background: #e5dfd1; /* Latar chat terang (cream kertas) */
+  color: #0a0a0a;
 }
 
-/* Desain Karakter / Avatar */
-.sprite {
-  font-size: 60px;
-  margin-bottom: 10px;
-  padding: 20px;
-  background-color: #000;
-  box-shadow: 
-    -4px 0 0 0 #444, 4px 0 0 0 #444, 
-    0 -4px 0 0 #444, 0 4px 0 0 #444;
-}
-
-.name-tag {
-  font-size: 12px;
-  color: #fff;
-  background-color: #111;
-  padding: 5px 10px;
-  border: 2px solid #555;
-}
-
-.ai-tag {
-  color: #ff3366;
-  border-color: #ff3366;
-}
-
-/* Logika Chat Bubble (Melayang di atas karakter) */
-.chat-bubble {
-  position: absolute;
-  top: -80px; /* Posisi di atas kepala */
-  width: max-content;
-  max-width: 200px;
-  background-color: #fff;
-  color: #000;
-  padding: 15px;
-  font-size: 10px;
-  line-height: 1.5;
-  text-align: center;
-  box-shadow: 
-    -4px 0 0 0 #fff, 4px 0 0 0 #fff, 
-    0 -4px 0 0 #fff, 0 4px 0 0 #fff;
-  animation: popIn 0.2s ease-out forwards;
-}
-
-/* Ekor Bubble */
-.chat-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 10px;
-  height: 10px;
-  background-color: #fff;
-}
-
-/* Animasi Muncul */
-@keyframes popIn {
-  0% { transform: scale(0.5); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* Footer (Chat Input) */
-.chat-bar {
-  display: flex;
-  margin: 10px;
-  padding: 10px;
-  gap: 10px;
-}
-
-.chat-input-wrapper {
+/* Chat Area */
+.chat-container {
   flex: 1;
   display: flex;
-  align-items: center;
-  background-color: #000;
-  padding: 0 15px;
-  box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+  flex-direction: column;
+  padding: 15px;
+  border-bottom: 6px solid #0a0a0a;
 }
 
-.prompt-icon {
-  color: #00ffcc;
-  margin-right: 10px;
-  font-size: 14px;
+.chat-header {
+  font-size: 1.5rem; font-weight: 900; border-bottom: 2px solid #0a0a0a; padding-bottom: 10px; margin-bottom: 15px; text-align: center;
 }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;
+}
+
+.chat-bubble {
+  padding: 10px 15px; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; max-width: 85%;
+}
+.other-bubble { background: #fff; border: 2px solid #ccc; align-self: flex-start; border-bottom-left-radius: 2px; }
+.self-bubble { background: #1c110d; color: #f4efe4; align-self: flex-end; border-bottom-right-radius: 2px; }
+.system-bubble { background: transparent; color: #8b0000; text-align: center; font-weight: bold; align-self: center; border: none; font-size: 0.85rem;}
 
 .chat-input {
-  width: 100%;
-  background: none;
-  border: none;
-  outline: none;
-  color: #fff;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 12px;
-  padding: 15px 0;
+  width: 100%; padding: 15px; border: 2px solid #0a0a0a; border-radius: 8px; font-size: 1rem; outline: none; background: #fff;
+}
+.chat-input:focus { border-color: #8b0000; }
+
+/* Action Container (Bawah Kanan) */
+.action-container {
+  height: 25vh; /* Menyediakan ruang untuk tombol bundar raksasa */
+  background: #1c110d;
+  display: flex; justify-content: center; align-items: center;
+  position: relative;
 }
 
-.send-btn {
-  background-color: #1976d2;
-  color: #fff;
-  padding: 15px 20px;
-  font-size: 12px;
-}
-
-/* Global Button Style */
-.pixel-btn {
-  font-family: 'Press Start 2P', cursive;
-  border: none;
+.action-circle-btn {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: #d3d3d3; /* Warna silver/abu seperti di wireframe */
+  border: 6px solid #0a0a0a;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
   cursor: pointer;
-  box-shadow: 
-    inset -4px -4px 0px 0px rgba(0, 0, 0, 0.4),
-    -4px 0 0 0 #fff, 4px 0 0 0 #fff, 
-    0 -4px 0 0 #fff, 0 4px 0 0 #fff;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+  transition: transform 0.2s, background 0.2s;
 }
 
-.pixel-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 
-    inset 4px 4px 0px 0px rgba(0, 0, 0, 0.4),
-    -4px 0 0 0 #fff, 4px 0 0 0 #fff, 
-    0 -4px 0 0 #fff, 0 4px 0 0 #fff;
+.action-circle-btn:hover {
+  transform: scale(1.05);
+  background: #f4efe4;
 }
+
+.action-title { font-size: 1.5rem; font-weight: 900; color: #0a0a0a; letter-spacing: 1px; }
+.action-sub { font-size: 0.75rem; color: #444; margin-top: 5px; font-style: italic; }
 </style>
 
-<body>
-    <div class="game-container">
-    <header class="top-bar pixel-box">
-    <div class="room-info">ROOM: SHADOW_HEIST_01</div>
-    <button routerLink="/main" class="pixel-btn exit-btn">EXIT</button>
-  </header>
 
-  <main class="arena">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<div class="game-wrapper">
+
+  <!-- ========================================== -->
+  <!-- 1. INTRO ANIMATION: SHUFFLE & REVEAL ROLE  -->
+  <!-- ========================================== -->
+  <div class="intro-overlay">
     
-    <div class="character-wrapper">
-      @if (playerMessage) {
-        <div class="chat-bubble player-bubble">
-          {{ playerMessage }}
+    <!-- Fase 1: Shuffling Cards -->
+    <div class="shuffling-phase">
+      <h2 class="intro-title">SHUFFLING [CARDS]</h2>
+      <div class="cards-deck">
+        <div class="card-back card-1"></div>
+        <div class="card-back card-2"></div>
+        <div class="card-back card-3"></div>
+        <div class="card-back card-4"></div>
+        <div class="card-back card-5"></div>
+      </div>
+    </div>
+
+    <!-- Fase 2: Role Reveal (Muncul setelah shuffle) -->
+    <div class="reveal-phase">
+      <h2 class="intro-title">You are</h2>
+      <div class="playing-card mini-card">
+        <div class="card-inner-border">
+          <h1 class="card-role-title">CIVILIAN</h1>
+          <div class="card-action-box">
+            <p class="card-action-text">SURVIVE & VOTE OUT THE HITMAN.</p>
+          </div>
         </div>
-      }
-      <div class="sprite player-sprite">👾</div>
-      <div class="name-tag">PLAYER_1</div>
+      </div>
     </div>
 
-    <div class="character-wrapper">
-      @if (npcMessage) {
-        <div class="chat-bubble npc-bubble">
-          {{ npcMessage }}
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN GAME UI (Muncul setelah intro)     -->
+  <!-- ========================================== -->
+  <div class="main-game-layout">
+    
+    <!-- BAGIAN KIRI: HUD & GAME MAP (70%) -->
+    <section class="left-section">
+      
+      <!-- Top HUD Bar -->
+      <header class="top-hud">
+        <button class="hud-circle-btn" title="Settings">⚙️</button>
+        
+        <div class="timer-box">
+          <span class="timer-text">03:00</span>
+          <span class="phase-text">DAY PHASE</span>
         </div>
-      }
-      <div class="sprite npc-sprite">🤖</div>
-      <div class="name-tag ai-tag">AI_BOT</div>
-    </div>
 
-  </main>
+        <div class="right-hud-group">
+          <div class="phase-indicator sun" title="Daytime">☀️</div>
+          <button class="hud-circle-btn" title="Role Profile">📜</button>
+        </div>
+      </header>
 
-  <footer class="chat-bar pixel-box">
-    <div class="chat-input-wrapper">
-      <span class="prompt-icon">></span>
-      <input 
-        #chatInput 
-        type="text" 
-        class="chat-input" 
-        placeholder="Ketik kebohonganmu di sini..." 
-        (keydown.enter)="sendMessage(chatInput.value); chatInput.value=''" 
-      />
-    </div>
-    <button 
-      class="pixel-btn send-btn" 
-      (click)="sendMessage(chatInput.value); chatInput.value=''">
-      SEND
-    </button>
-  </footer>
+      <!-- Game Arena / Map -->
+      <main class="game-map">
+        <!-- Hardcode Avatar Pemain Duduk Melingkar -->
+        <div class="map-center-table">
+          <div class="avatar-slot pos-top">
+            <div class="avatar-circle">👤</div><span class="name-tag">Shadow_99</span>
+          </div>
+          <div class="avatar-slot pos-left">
+            <div class="avatar-circle">🕵️</div><span class="name-tag">Civilian_01 (You)</span>
+          </div>
+          <div class="avatar-slot pos-right">
+            <div class="avatar-circle">👤</div><span class="name-tag">Detective_X</span>
+          </div>
+          <div class="avatar-slot pos-bottom">
+            <div class="avatar-circle">👤</div><span class="name-tag">Player_Two</span>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- BAGIAN KANAN: CHAT & ACTION BUTTON (30%) -->
+    <aside class="right-section">
+      
+      <!-- Area Chat -->
+      <div class="chat-container">
+        <div class="chat-header">TRIBUNAL CHAT</div>
+        <div class="chat-messages">
+          <div class="chat-bubble other-bubble">
+            <strong>Shadow_99:</strong> Ada yang denger suara aneh semalam?
+          </div>
+          <div class="chat-bubble self-bubble">
+            <strong>You:</strong> Nggak, layarku gelap total.
+          </div>
+          <div class="chat-bubble system-bubble">
+            <em>Player_Two is unusually silent...</em>
+          </div>
+        </div>
+        <input type="text" class="chat-input" placeholder="Type your message..." />
+      </div>
+
+      <!-- Area Action Button (Bawah Kanan) -->
+      <div class="action-container">
+        <!-- Karena Civilian, tombolnya OBSERVE atau VOTE. Kalau Hitman, tulisannya GAG ORDER. -->
+        <button class="action-circle-btn">
+          <span class="action-title">OBSERVE</span>
+          <span class="action-sub">(No Night Skill)</span>
+        </button>
+      </div>
+
+    </aside>
+  </div>
+
 </div>
-</body>
+
+<script>
+  // 1. Koneksi ke Backend Python (Ganti localhost dengan IP server jika sudah online)
+  const socket = io("http://localhost:5000");
+  
+  // Data sementara pemain (Idealnya didapat saat login)
+  const myName = "Civilian_01 (You)";
+  let isGagged = false;
+
+  // 2. Deklarasi Elemen UI
+  const chatInput = document.querySelector('.chat-input');
+  const chatMessages = document.querySelector('.chat-messages');
+  const actionBtn = document.querySelector('.action-circle-btn');
+
+  // 3. Mengirim Chat ke Server saat tekan "Enter"
+  chatInput.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter' && chatInput.value.trim() !== "") {
+      if (isGagged) {
+        alert("Suara Anda hilang...");
+        return;
+      }
+      
+      const msg = chatInput.value.trim();
+      // Kirim event 'send_chat' ke Python
+      socket.emit('send_chat', { username: myName, message: msg });
+      
+      // Kosongkan input
+      chatInput.value = ""; 
+    }
+  });
+
+  // 4. Menerima Chat dari Server
+  socket.on('receive_chat', function (data) {
+    // Tentukan apakah ini chat kita sendiri, orang lain, atau sistem
+    let bubbleClass = "other-bubble";
+    if (data.sender === myName) bubbleClass = "self-bubble";
+    if (data.sender === "SYSTEM") bubbleClass = "system-bubble";
+
+    // Buat elemen bubble baru
+    const newBubble = document.createElement('div');
+    newBubble.className = `chat-bubble ${bubbleClass}`;
+    
+    if (data.sender === "SYSTEM") {
+      newBubble.innerHTML = `<em>${data.message}</em>`;
+    } else {
+      newBubble.innerHTML = `<strong>${data.sender}:</strong> ${data.message}`;
+    }
+
+    // Masukkan ke UI dan auto-scroll ke bawah
+    chatMessages.appendChild(newBubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+
+  // 5. Menerima Efek "Silent Terror" (Gag Order / Hostage)
+  socket.on('status_changed', function (data) {
+    if (data.status === 'gagged' || data.status === 'hostage') {
+      isGagged = true;
+      chatInput.disabled = true;
+      chatInput.style.backgroundColor = "#555";
+      chatInput.style.cursor = "not-allowed";
+      chatInput.placeholder = "Suara Anda tiba-tiba hilang...";
+    }
+  });
+
+  // (Opsional) 6. Interaksi Tombol Action Besar
+  actionBtn.addEventListener('click', function() {
+    console.log("Tombol action ditekan!");
+    // Nanti bisa dieksekusi kirim emit sesuai role, misalnya:
+    // socket.emit('use_gag_order', { target: "Shadow_99" });
+  });
+
+</script>

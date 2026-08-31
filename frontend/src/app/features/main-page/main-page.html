@@ -1,174 +1,307 @@
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #211510; 
+}
 
-/* Container Utama */
-.main-container {
+:host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+/* Container Utama - Latar Belakang Meja Kayu Gelap */
+.game-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: #1a1a1a;
-  background-image: 
-    linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111), 
-    linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111);
-  background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
-  font-family: 'Press Start 2P', cursive;
-  color: #fff;
-  padding: 20px;
-  box-sizing: border-box;
+  height: 100vh;
+  width: 100vw;
+  /* Membuat tekstur kayu gelap buatan menggunakan gradient */
+  background-color: #211510;
+  background-image: repeating-linear-gradient(
+    to right,
+    #211510 0px,
+    #1a100c 20px,
+    #211510 40px
+  );
+  color: #f4efe4;
+  overflow: hidden;
+  /* Efek gelap (vignette) di pinggir layar agar fokus ke tengah */
+  box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.9);
 }
 
-/* Header Kanan Atas */
-.top-bar {
+/* --- BARIS 1: Top Row --- */
+.top-row {
   display: flex;
   justify-content: flex-end;
-  width: 100%;
+  padding: 20px 40px;
+  height: 10vh;
 }
 
-.user-badge {
+.user-profile {
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #2b2b2b;
-  padding: 10px 16px;
+  cursor: pointer;
+  padding: 6px 16px;
+  /* Desain plat kayu kecil untuk profil */
+  background: #2a1b14;
+  border-radius: 8px;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
 }
 
-.avatar-box {
-  background-color: #000;
-  padding: 6px;
-  font-size: 16px;
-  box-shadow: 
-    -2px 0 0 0 #00ffcc, 
-    2px 0 0 0 #00ffcc, 
-    0 -2px 0 0 #00ffcc, 
-    0 2px 0 0 #00ffcc;
+.user-profile:hover {
+  transform: translateY(-2px);
+  background: #36241a;
+}
+
+.avatar-circle {
+  font-size: 1.2rem;
+  background: #f4efe4;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000;
 }
 
 .username {
-  font-size: 12px;
-  color: #00ffcc;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #f4efe4;
 }
 
-/* Area Menu Tengah */
-.menu-content {
+/* --- BARIS 2: Middle Row --- */
+.middle-row {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8%;
+}
+
+.side-col {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 
-/* Kotak Pixel Frame */
-.pixel-box {
-  background-color: #2b2b2b;
-  box-shadow: 
-    -4px 0 0 0 white, 
-    4px 0 0 0 white, 
-    0 -4px 0 0 white, 
-    0 4px 0 0 white,
-    inset -4px 0 0 0 #111,
-    inset 0 -4px 0 0 #111;
+.center-col {
+  flex: 1.5;
+  display: flex;
+  justify-content: center;
 }
 
-.menu-card {
-  padding: 40px;
-  text-align: center;
-  width: 100%;
-  max-width: 480px;
-}
-
-.game-title {
-  color: #ffcc00;
-  font-size: 26px;
-  text-shadow: 4px 4px 0px #d32f2f;
-  margin-bottom: 12px;
-}
-
-.subtitle {
-  font-size: 12px;
-  color: #a0a0a0;
-  margin-bottom: 35px;
-}
-
-/* Susunan Tombol */
-.menu-buttons {
+/* Tombol Kiri & Kanan (Desain Papan Kayu / Panel Gelap) */
+.wood-panel-btn {
+  background: #1c110d;
+  border: 4px solid #000;
+  color: #f4efe4;
+  padding: 20px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.8);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 80%;
+  max-width: 280px;
 }
 
-/* Tombol Pixel */
-.pixel-btn {
-  padding: 18px;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 12px;
-  cursor: pointer;
-  border: none;
-  transition: transform 0.1s, background-color 0.1s;
-  box-shadow: 
-    inset -4px -4px 0px 0px rgba(0, 0, 0, 0.4),
-    -4px 0 0 0 #fff, 
-    4px 0 0 0 #fff, 
-    0 -4px 0 0 #fff, 
-    0 4px 0 0 #fff;
+.wood-panel-btn:hover {
+  transform: scale(1.05);
+  background: #2a1913;
+  border-color: #8b0000; /* Sentuhan merah darah (Hitman) saat dihover */
 }
 
-/* Tombol START GAME (Merah) */
-.start-btn {
-  background-color: #d32f2f;
-  color: #fff;
+.btn-title {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  margin-top: 10px;
 }
 
-.start-btn:hover {
-  background-color: #f44336;
+.btn-desc {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  letter-spacing: 1px;
+  margin-top: 8px;
 }
 
-/* Tombol PROFILE (Biru/Teal) */
-.profile-btn {
-  background-color: #1976d2;
-  color: #fff;
+.icon-box {
+  font-size: 3.5rem;
 }
 
-.profile-btn:hover {
-  background-color: #2196f3;
+/* --- DESAIN KARTU TENGAH (Sesuai Konsep Gambar) --- */
+.playing-card {
+  background-color: #f4efe4; /* Warna cream kertas */
+  border: 14px solid #0a0a0a; /* Border hitam tebal luar */
+  border-radius: 12px;
+  width: 320px;
+  height: 460px;
+  padding: 8px; /* Jarak antara border tebal luar dan garis tipis dalam */
+  box-shadow: 15px 20px 30px rgba(0,0,0,0.8);
+  position: relative;
+  transition: transform 0.3s ease;
 }
 
-/* Efek Klik Tombol */
-.pixel-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 
-    inset 4px 4px 0px 0px rgba(0, 0, 0, 0.4),
-    -4px 0 0 0 #fff, 
-    4px 0 0 0 #fff, 
-    0 -4px 0 0 #fff, 
-    0 4px 0 0 #fff;
+.playing-card:hover {
+  transform: translateY(-10px);
+}
+
+.card-inner-border {
+  border: 2px solid #0a0a0a; /* Garis tipis di bagian dalam */
+  border-radius: 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 10px;
+}
+
+.card-role-title {
+  font-family: 'Arial Narrow', Arial, sans-serif; /* Mirip font di gambar */
+  font-size: 3rem;
+  color: #0a0a0a;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.character-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.center-character {
+  max-width: 90%;
+  max-height: 250px;
+  object-fit: contain;
+  /* Memberikan sedikit efek bayangan pada karakter agar tidak flat */
+  filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.2)); 
+}
+
+.card-action-box {
+  border-top: 2px dotted #0a0a0a; /* Meniru hiasan titik-titik di bawah */
+  width: 80%;
+  padding-top: 15px;
+}
+
+.card-action-text {
+  color: #0a0a0a;
+  font-weight: 800;
+  text-align: center;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* --- BARIS 3: Footer --- */
+.bottom-row {
+  height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.flavor-text {
+  font-style: italic;
+  letter-spacing: 2px;
+  margin: 0;
+  color: #8b0000; /* Merah gelap */
+  font-weight: bold;
+}
+
+.version {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  font-family: monospace;
+  opacity: 0.6;
 }
 </style>
 
-<body>
-    <div class="main-container">
-  <header class="top-bar">
-    <div class="user-badge pixel-box">
-      <div class="avatar-box">👾</div>
-      <span class="username">{{ username }}</span>
+<div class="game-container">
+  
+  <!-- BARIS 1: Top Row (Profil di Ujung Kanan) -->
+  <header class="top-row">
+    <div class="user-profile">
+      <!-- Menggunakan istilah "Civilian" sebagai default user -->
+      <span class="username">{{ username || 'Civilian_01' }}</span>
+      <div class="avatar-circle">🕵️</div>
     </div>
   </header>
 
-  <main class="menu-content">
-    <div class="pixel-box menu-card">
-      <h1 class="game-title">SHADOW HEIST</h1>
-      <p class="subtitle">-- MAIN MENU --</p>
+  <!-- BARIS 2: Middle Row -->
+  <main class="middle-row">
+    
+    <!-- Kiri: Tombol Start (Masuk ke Lobby / Tribunal) -->
+    <div class="side-col left-col">
+      <button class="wood-panel-btn start-btn" routerLink="/lobby">
+        <span class="btn-title">ENTER TRIBUNAL</span>
+        <span class="btn-desc">Join the Lobby. Trust No One.</span>
+      </button>
+    </div>
 
-      <div class="menu-buttons">
-        <button type="button" class="pixel-btn start-btn" routerLink="/lobby">
-          ▶ START GAME
-        </button>
+    <!-- Tengah: Desain persis seperti kartu di gambar -->
+    <div class="center-col">
+      <div class="playing-card">
+        <div class="card-inner-border">
+          
+          <!-- Judul Kartu (Bisa diubah dinamis) -->
+          <h1 class="card-role-title">CIVILIAN</h1>
+          
+          <!-- Gambar Karakter (Ganti src dengan path gambarmu) -->
+          <div class="character-wrapper">
+            <img src="assets/image_2ae9f3.jpg" alt="Character" class="center-character">
+          </div>
+          
+          <!-- Teks Bawah Kartu -->
+          <div class="card-action-box">
+            <p class="card-action-text">SURVIVE & VOTE OUT<br>THE HITMAN.</p>
+          </div>
 
-        <button type="button" class="pixel-btn profile-btn" routerLink="/profile">
-          👤 CHARACTER PROFILE
-        </button>
+        </div>
       </div>
     </div>
-  </main>
-</div>
 
-</body>
+    <!-- Kanan: Tombol ke Penjelasan Role (Hitman, Spy, Stalker, dll) -->
+    <div class="side-col right-col">
+      <button class="wood-panel-btn role-btn" routerLink="/profile" title="View Roles & Skills">
+        <div class="icon-box">📜</div>
+        <span class="btn-title">GAME ROLES</span>
+        <span class="btn-desc">Hitman, Spy, Stalker</span>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- BARIS 3: Footer -->
+  <footer class="bottom-row">
+    <p class="flavor-text">"If they go silent, they are either the Hostage... or plotting your demise."</p>
+    <p class="version">Zero Economy Edition • The Silent Terror</p>
+  </footer>
+
+</div>
